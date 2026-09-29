@@ -22,6 +22,7 @@ METAL_DECLARATIONS_BEGIN
 @protocol MTLDepthStencilState;
 @protocol MTLSamplerState;
 
+@class MTLCompileOptions;
 @class MTLComputePipelineDescriptor;
 @class MTLAutoreleasedComputePipelineReflection;
 @class MTLDepthStencilDescriptor;
@@ -91,6 +92,10 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
 
 - (id<MTLLibrary>)newLibraryWithData: (dispatch_data_t)data
                                error: (NSError**)error;
+
+- (nullable id<MTLLibrary>)newLibraryWithSource: (NSString*)source
+                                        options: (nullable MTLCompileOptions*)options
+                                          error: (NSError**)error;
 
 // TODO: other methods and properties
 

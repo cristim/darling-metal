@@ -317,6 +317,24 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	return [[MTLLibraryInternal alloc] initWithLibrary: lib device: self];
 }
 
+- (id<MTLLibrary>)newLibraryWithSource: (NSString*)source
+                               options: (MTLCompileOptions*)options
+                                 error: (NSError**)error
+{
+	// Indium's only library entry point takes a precompiled metallib, and no MSL
+	// front end is linked into Metal.framework, so there is nowhere for the source
+	// text to go. Say so rather than aborting or handing back a library that does
+	// not exist.
+	if (error) {
+		*error = [NSError errorWithDomain: MTLLibraryErrorDomain
+		                             code: MTLLibraryErrorUnsupported
+		                         userInfo: @{
+			NSLocalizedDescriptionKey: @"Compiling Metal Shading Language source is not supported: Metal.framework can only load precompiled .metallib libraries (newLibraryWithData:, newLibraryWithURL:), and no MSL compiler is linked in.",
+		}];
+	}
+	return nil;
+}
+
 #else
 
 MTL_UNSUPPORTED_CLASS
