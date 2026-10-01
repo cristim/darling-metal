@@ -51,6 +51,13 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
 
 @protocol MTLDevice <NSObject>
 
+/*!
+ @property recommendedMaxWorkingSetSize
+ @abstract An approximation of how much memory this device can use with good
+ performance. Keeping the total size of all resources and heaps below it avoids
+ overcommitting the device and the performance penalty that comes with it. */
+@property(nonatomic, readonly) uint64_t recommendedMaxWorkingSetSize;
+
 - (id<MTLComputePipelineState>)newComputePipelineStateWithDescriptor: (MTLComputePipelineDescriptor*)descriptor
                                                              options: (MTLPipelineOption)options
                                                           reflection: (MTLAutoreleasedComputePipelineReflection*)reflection

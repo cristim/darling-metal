@@ -183,6 +183,15 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	[_threadExitCondition unlock];
 }
 
+- (uint64_t)recommendedMaxWorkingSetSize
+{
+	// indium decides this from the device's memory budget where the driver
+	// reports one and from its memory heap size where it does not. See
+	// Indium::PrivateDevice::recommendedMaxWorkingSetSize for why a budget is
+	// the honest analogue and why maxMemoryAllocationCount is not.
+	return _device->recommendedMaxWorkingSetSize();
+}
+
 - (id<MTLComputePipelineState>)newComputePipelineStateWithDescriptor: (MTLComputePipelineDescriptor*)descriptor
                                                              options: (MTLPipelineOption)options
                                                           reflection: (MTLAutoreleasedComputePipelineReflection*)reflection
