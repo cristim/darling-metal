@@ -323,6 +323,7 @@ int main(void)
 			id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 			if (device != nil) {
 				MTLHeapDescriptor* hd = [MTLHeapDescriptor new];
+				(void)hd;
 				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newHeapWithDescriptor:error:)],
 					"MTLDevice does not claim -newHeapWithDescriptor:error:");
 
@@ -346,6 +347,62 @@ int main(void)
 				(void)td;
 				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newTileRenderPipelineStateWithDescriptor:error:)],
 					"MTLDevice does not claim -newTileRenderPipelineStateWithDescriptor:error:");
+
+				// -name is implemented, so this checks the answer rather than the
+				// absence. What makes it worth asserting is that it is the
+				// device's own name: the string below is what vulkaninfo reports
+				// for the physical device indium enumerates first on this host.
+				// A hard-coded expectation of that exact string would make this a
+				// test of the host's GPU rather than of -name, so the checks are
+				// on the properties any device name must have, and the harness
+				// prints the value so it can be compared against vulkaninfo by
+				// eye. Non-empty, and not one of the placeholder strings a
+				// fabricated implementation would return.
+				NSString* deviceName = [device name];
+				printf("info  -name = \"%s\"\n",
+					([deviceName length] > 0) ? [deviceName UTF8String] : "");
+				MTL_EXPECT(deviceName != nil, "-name returns an object");
+				MTL_EXPECT([deviceName length] > 0, "-name is not empty");
+				MTL_EXPECT(![deviceName isEqualToString: @"<unnamed>"],
+					"-name is a real name, not a placeholder");
+				// The name comes back as UTF-8 that round-trips, which is what
+				// makes it the device's own name and not a lossy re-encoding.
+				MTL_EXPECT([[NSString stringWithUTF8String: [deviceName UTF8String]]
+					isEqualToString: deviceName], "-name round-trips through UTF-8");
+
+				// The other nine of the twelve selectors Blender 5.1.2 reaches
+				// for. Each is a question indium cannot answer, so each must stay
+				// absent: the unrecognised selector names the gap, where an
+				// object that answered plausibly would not.
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newEvent)],
+					"MTLDevice does not claim -newEvent");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newSharedEvent)],
+					"MTLDevice does not claim -newSharedEvent");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newBinaryArchiveWithDescriptor:error:)],
+					"MTLDevice does not claim -newBinaryArchiveWithDescriptor:error: (second check)");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newCounterSampleBufferWithDescriptor:error:)],
+					"MTLDevice does not claim -newCounterSampleBufferWithDescriptor:error: (second check)");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newArgumentEncoderWithArguments:)],
+					"MTLDevice does not claim -newArgumentEncoderWithArguments:");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newAccelerationStructureWithSize:)],
+					"MTLDevice does not claim -newAccelerationStructureWithSize:");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(accelerationStructureSizesWithDescriptor:)],
+					"MTLDevice does not claim -accelerationStructureSizesWithDescriptor:");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(newCommandQueueWithMaxCommandBufferCount:)],
+					"MTLDevice does not claim -newCommandQueueWithMaxCommandBufferCount:");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(minimumLinearTextureAlignmentForPixelFormat:)],
+					"MTLDevice does not claim -minimumLinearTextureAlignmentForPixelFormat:");
+
+				// Two more that are questions about the hardware rather than about
+				// this framework's plumbing. MTLGPUFamily is Apple's numbering of
+				// silicon generations and Vulkan has no property that maps onto
+				// it; indium has no query pool at all, so it has no counter
+				// sampling point to report. Both would be a claim about real
+				// hardware, so both stay absent.
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(supportsFamily:)],
+					"MTLDevice does not claim -supportsFamily:");
+				MTL_EXPECT_NEGATIVE([device respondsToSelector: @selector(supportsCounterSampling:)],
+					"MTLDevice does not claim -supportsCounterSampling:");
 
 				// The one that used to be a silent nil under a "TODO".
 				id<MTLLibrary> lib = [device newDefaultLibrary];
