@@ -192,6 +192,14 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	return _device->recommendedMaxWorkingSetSize();
 }
 
+- (NSString*)name
+{
+	// VkPhysicalDeviceProperties::deviceName, which the Vulkan specification
+	// defines as a null-terminated UTF-8 string, so this is the device's own
+	// name in its own encoding and not a guess at one.
+	return [NSString stringWithUTF8String: _device->name().c_str()];
+}
+
 - (id<MTLComputePipelineState>)newComputePipelineStateWithDescriptor: (MTLComputePipelineDescriptor*)descriptor
                                                              options: (MTLPipelineOption)options
                                                           reflection: (MTLAutoreleasedComputePipelineReflection*)reflection

@@ -58,6 +58,49 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  overcommitting the device and the performance penalty that comes with it. */
 @property(nonatomic, readonly) uint64_t recommendedMaxWorkingSetSize;
 
+/*!
+ @property name
+ @abstract The full name of the vendor device.
+ @discussion This is the device's own name, which indium reads out of
+ VkPhysicalDeviceProperties::deviceName. That member is specified to be a
+ null-terminated UTF-8 string, so it converts without loss and without this
+ framework having to guess an encoding. */
+@property(nonnull, readonly) NSString* name;
+
+/*! The selectors below are deliberately NOT declared, so a caller that reaches
+ for one gets an unrecognised selector naming the gap. Each is a question about
+ the hardware that indium cannot answer, and a plausible answer would be worse
+ than the error:
+
+ -supportsFamily: and -supportsCounterSampling: ask what the underlying GPU can
+ do. MTLGPUFamily is Apple's own numbering of silicon generations (Apple1
+ through Apple7, Mac1, Mac2, Common1 through Common3, MacCatalyst1 and 2) and
+ Vulkan has no property that maps onto it: deviceName is a free-form string and
+ vendorID/deviceID identify the driver, not the GPU family. Returning YES or NO
+ would be a claim about real hardware, and on a machine whose GPU genuinely
+ supports counter sampling, NO would be a lie that sends the caller down a path
+ it did not need to avoid. MTLCounterSamplingPoint likewise enumerates where
+ Metal may sample counters, and indium has no query pool at all, so it has no
+ sampling point to report on. Neither is declared until indium can say something
+ true.
+
+ -minimumLinearTextureAlignmentForPixelFormat: returns the alignment Metal
+ requires of a linear texture's offset and rowBytes, per pixel format, and
+ throws for depth, stencil and compressed formats. Apple states the requirement
+ but not the table, so there is nothing here to derive a value from, and indium
+ does not enforce any linear-texture alignment for it to report: its
+ replaceRegion: passes bytesPerRow straight through unvalidated. Returning a
+ Vulkan limit such as optimalBufferCopyOffsetAlignment would answer a different
+ question, since that bounds buffer copies rather than texture layout.
+
+ The remaining omitted selectors are documented where the class that would have
+ provided the object is declared: -newEvent in MTLSharedEvent.h,
+ -newArgumentEncoderWithArguments: in MTLArgumentDescriptor.h,
+ -newCommandQueueWithMaxCommandBufferCount: in MTLCommandQueue.h,
+ -newBinaryArchiveWithDescriptor:error: in MTLBinaryArchive.h,
+ -newCounterSampleBufferWithDescriptor:error: in MTLCounterSampleBuffer.h, and
+ the acceleration-structure selectors in MTLAccelerationStructure.h. */
+
 - (id<MTLComputePipelineState>)newComputePipelineStateWithDescriptor: (MTLComputePipelineDescriptor*)descriptor
                                                              options: (MTLPipelineOption)options
                                                           reflection: (MTLAutoreleasedComputePipelineReflection*)reflection
