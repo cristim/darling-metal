@@ -21,6 +21,14 @@ METAL_DECLARATIONS_BEGIN
  * MTLSharedEvent nor MTLSharedEventHandle is provided. -[MTLDevice newSharedEvent]
  * is therefore not declared, so a caller that wants one is told so at the call
  * rather than receiving an event that never fires and never says why.
+ *
+ * -[MTLDevice newEvent] is not declared for the same reason. Apple describes it
+ * as "a new single-device non-shareable Metal event object", so it wants an
+ * MTLEvent, which is a different class from MTLSharedEvent and is not provided
+ * either: it has a signalledValue the host and the GPU both write, and indium
+ * has no event model to hold one. Signing it would mean a semaphore standing in
+ * for a value both sides can read, and a caller that saw a signalledValue that
+ * only its own writes moved would be worse off than the unrecognised selector.
  */
 MTL_EXPORT
 @interface MTLSharedEventListener : NSObject

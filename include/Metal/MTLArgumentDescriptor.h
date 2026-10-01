@@ -129,6 +129,11 @@ typedef NS_ENUM(NSUInteger, MTLArgumentAccess) {
  * shader. It is the *reflection* object, MTLArgument, that indium would have to
  * produce and cannot, so -newArgumentEncoderWithBufferIndex: on MTLFunction
  * refuses instead of handing back an encoder built on a guessed layout.
+ *
+ * -[MTLDevice newArgumentEncoderWithArguments:] is not declared at all, for the
+ * same reason as the MTLFunction methods and with the same MTLArgumentEncoder
+ * absent: it would build one encoder that lays a sequence of these descriptors
+ * out consecutively, so every offset and stride in it would be invented.
  */
 MTL_EXPORT
 @interface MTLArgumentDescriptor : NSObject <NSCopying>

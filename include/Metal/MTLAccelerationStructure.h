@@ -37,6 +37,15 @@ typedef NS_ENUM(NSInteger, MTLTransformType) {
  *
  * Building an acceleration structure out of these is not provided: indium has no
  * ray tracing at all.
+ *
+ * For the same reason -[MTLDevice newAccelerationStructureWithSize:] and
+ * -[MTLDevice accelerationStructureSizesWithDescriptor:] are not declared.
+ * The first allocates an acceleration structure of a byte size, and the second
+ * reports the geometry, build and refit-scratch sizes a descriptor would need.
+ * Neither can be answered: there is no VkAccelerationStructureKHR to build into
+ * and no build-size query behind it, so the sizes in particular are the one case
+ * where a made-up number would be read as authoritative by a caller sizing its
+ * own buffers.
  */
 MTL_EXPORT
 @interface MTLMotionKeyframeData : NSObject
