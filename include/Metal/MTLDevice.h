@@ -10,6 +10,28 @@
 #import <Metal/MTLDefines.h>
 
 METAL_DECLARATIONS_BEGIN
+// MTLGPUFamily is Apple's own numbering of GPU silicon generations. Darling's SDK
+// subset does not carry the enum, but a caller passes these values from its own
+// Metal headers, so only the one value we compare against is load-bearing: every
+// other family is declined regardless of what it is called.
+typedef NS_ENUM(NSInteger, MTLGPUFamily) {
+	MTLGPUFamilyApple1       = 1001,
+	MTLGPUFamilyApple2       = 1002,
+	MTLGPUFamilyApple3       = 1003,
+	MTLGPUFamilyApple4       = 1004,
+	MTLGPUFamilyApple5       = 1005,
+	MTLGPUFamilyApple6       = 1006,
+	MTLGPUFamilyApple7       = 1007,
+	MTLGPUFamilyMac1         = 2001,
+	MTLGPUFamilyMac2         = 2002,
+	MTLGPUFamilyCommon1      = 3001,
+	MTLGPUFamilyCommon2      = 3002,
+	MTLGPUFamilyCommon3      = 3003,
+	MTLGPUFamilyMetal3       = 5003,
+	MTLGPUFamilyMacCatalyst1 = 6001,
+	MTLGPUFamilyMacCatalyst2 = 6002,
+};
+
 
 @protocol MTLComputePipelineState;
 @protocol MTLFunction;
@@ -72,17 +94,18 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  the hardware that indium cannot answer, and a plausible answer would be worse
  than the error:
 
- -supportsFamily: and -supportsCounterSampling: ask what the underlying GPU can
- do. MTLGPUFamily is Apple's own numbering of silicon generations (Apple1
- through Apple7, Mac1, Mac2, Common1 through Common3, MacCatalyst1 and 2) and
- Vulkan has no property that maps onto it: deviceName is a free-form string and
- vendorID/deviceID identify the driver, not the GPU family. Returning YES or NO
- would be a claim about real hardware, and on a machine whose GPU genuinely
- supports counter sampling, NO would be a lie that sends the caller down a path
- it did not need to avoid. MTLCounterSamplingPoint likewise enumerates where
- Metal may sample counters, and indium has no query pool at all, so it has no
- sampling point to report on. Neither is declared until indium can say something
- true.
+ -supportsCounterSampling: asks what the underlying GPU can do. MTLCounterSamplingPoint
+ enumerates where Metal may sample counters, and indium has no query pool at all,
+ so it has no sampling point to report on. It is not declared until indium can say
+ something true.
+
+ -supportsFamily: IS declared, and answers for Apple1 only. MTLGPUFamily is Apple's own
+ numbering of silicon generations and Vulkan has no property that maps onto it --
+ deviceName is a free-form string and vendorID/deviceID identify the driver, not
+ the GPU family. So this does not ask indium; it answers for the hardware Darling's
+ Metal is written against, and NO for every other family. A caller asking about a
+ family we do not claim takes the conservative branch, which is the one that cannot
+ select a path we cannot run.
 
  -minimumLinearTextureAlignmentForPixelFormat: returns the alignment Metal
  requires of a linear texture's offset and rowBytes, per pixel format, and
@@ -158,7 +181,24 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  * startup, which is how this was found. */
 - (BOOL) supportsTextureSampleCount: (NSUInteger)count;
 
-@end
+  /* NO, and not because the hardware lacks them: Apple Silicon supports argument
+   * buffers. indium carries the answer already --
+   * SamplerDescriptor::supportArgumentBuffers is false and library.cpp sets it
+   * false -- and there is no argument buffer implementation behind it. Answering
+   * YES would send a caller down an MTLArgumentBuffer path with no encoder at the
+   * end of it, converting a clear NO here into a failure at the first encode. */
+  - (BOOL) argumentBuffersSupport;
+
+  /* Also NO for want of an implementation rather than for want of hardware.
+   * Barycentric coordinates are a fragment-shader interpolation decoration, and
+   * Vulkan has no equivalent, so there is nothing for indium to lower a shader's
+   * use of them onto. A caller told YES would emit a shader whose output no
+   * longer means what it says. */
+  - (BOOL) supportsShaderBarycentricCoordinates;
+
+  - (BOOL) supportsFamily: (MTLGPUFamily)family;
+
+  @end
 
 METAL_DECLARATIONS_END
 

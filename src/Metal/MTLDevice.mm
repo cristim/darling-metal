@@ -527,6 +527,27 @@ MTL_UNSUPPORTED_CLASS
 
 #endif
 
+- (BOOL) supportsFamily: (MTLGPUFamily)family {
+	// See the note in MTLDevice.h. indium cannot report a GPU family, so this
+	// answers for the Apple Silicon generation this was verified against and
+	// declines every other. Declining is the safe direction: a caller that
+	// believes it is on a family we do not claim will pick a path indium may not
+	// be able to run, while a caller told NO takes the conservative one.
+	return family == MTLGPUFamilyApple1;
+}
+
+- (BOOL) supportsShaderBarycentricCoordinates {
+	// See the note in MTLDevice.h: Vulkan has no barycentric decoration to lower
+	// onto, so this says what the backend implements.
+	return NO;
+}
+
+- (BOOL) argumentBuffersSupport {
+	// See the note in MTLDevice.h: indium does not implement argument buffers, so
+	// this reports what the backend can do rather than what the GPU is.
+	return NO;
+}
+
 - (BOOL) supportsTextureSampleCount: (NSUInteger)count {
 	/* MSL only supports a single sample per pixel; no multisampling is implemented
 	 * here, so anything other than 1 is refused rather than silently wrong. */
