@@ -22,6 +22,10 @@ void MTLDeviceDestroyAll(void);
 - (void)stopPolling;
 
 - (void)waitUntilPollingIsStopped;
+
+// Implicit queue backing -[MTLDevice newCommandBuffer]. Metal apps call that
+// before every frame and rarely ever ask for an explicit queue.
+- (id<MTLCommandQueue>)implicitCommandQueue;
 #endif
 
 @end

@@ -114,6 +114,7 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	NSThread* _pollingThread;
 	NSCondition* _threadExitCondition;
 	BOOL _threadIsRunning;
+	id<MTLCommandQueue> _implicitQueue;
 }
 
 @synthesize device = _device;
@@ -149,6 +150,7 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 
 - (void)dealloc
 {
+	[_implicitQueue release];
 	[_pollingThread release];
 	[_threadExitCondition release];
 
@@ -253,6 +255,32 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 		return nil;
 	}
 	return [[MTLDepthStencilStateInternal alloc] initWithState: state device: self];
+}
+
+- (id<MTLCommandBuffer>)newCommandBuffer
+{
+	// Metal apps call this before encoding any frame, so it cannot be left
+	// unimplemented: without it no Metal work can be submitted at all. Keep one
+	// implicit queue and hand out buffers from it, rather than making every call
+	// create a fresh queue.
+	return [[self implicitCommandQueue] commandBuffer];
+}
+
+- (id<MTLCommandQueue>)implicitCommandQueue
+{
+	if (!_implicitQueue) {
+		auto queue = _device->newCommandQueue();
+		if (!queue) {
+			return nil;
+		}
+		_implicitQueue = [[MTLCommandQueueInternal alloc] initWithQueue: queue device: self];
+	}
+	return _implicitQueue;
+}
+
+- (NSString*)name
+{
+	return @"Darling GPU";
 }
 
 - (id<MTLCommandQueue>)newCommandQueue
