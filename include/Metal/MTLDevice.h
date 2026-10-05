@@ -92,7 +92,27 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
 - (id<MTLLibrary>)newLibraryWithData: (dispatch_data_t)data
                                error: (NSError**)error;
 
-// TODO: other methods and properties
+/* TODO: other methods and properties */
+
+/* Values match Apple's MTLGPUFamily; apps pass these as plain integers, so the
+ * numbering has to be right even though this tree never had the enum. */
+typedef NS_ENUM(NSInteger, MTLGPUFamily) {
+    MTLGPUFamilyApple1 = 1,
+    MTLGPUFamilyApple2 = 2,
+    MTLGPUFamilyApple3 = 3,
+    MTLGPUFamilyApple4 = 4,
+    MTLGPUFamilyApple5 = 5,
+    MTLGPUFamilyApple6 = 6,
+    MTLGPUFamilyApple7 = 7,
+    MTLGPUFamilyApple8 = 8,
+    MTLGPUFamilyApple9 = 9,
+    MTLGPUFamilyCommon1 = 1000,
+    MTLGPUFamilyCommon2 = 1001,
+    MTLGPUFamilyCommon3 = 1002,
+    MTLGPUFamilyMac2 = 1003,
+    MTLGPUFamilyMetal3 = 5000,
+    MTLGPUFamilyMetal4 = 5001,
+};
 
 /* Games query these before choosing a render path. Implemented as constants rather
  * than left to crash: a selector miss on MTLDevice takes the whole app down at
@@ -100,6 +120,9 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
 @property (readonly, getter=isLowPower) BOOL lowPower;
 @property (readonly, getter=isHeadless) BOOL headless;
 @property (readonly, getter=isRemovable) BOOL removable;
+
+/* See the implementation for which families are claimed. */
+- (BOOL)supportsFamily: (MTLGPUFamily)family;
 
 @end
 

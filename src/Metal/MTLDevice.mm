@@ -379,7 +379,23 @@ MTL_UNSUPPORTED_CLASS
 }
 
 - (BOOL) isRemovable {
-	return NO;
-}
+ 	return NO;
+ }
+
+ - (BOOL) supportsFamily: (MTLGPUFamily)family {
+ 	switch (family) {
+ 		/* The Common families describe MSL language versions (1.0/2.0/3.0), not
+ 		 * Apple hardware, and this backend compiles through clang. The Apple*,
+ 		 * Mac2 and Metal3/4 families promise hardware features it does not
+ 		 * implement, so claiming them would let a game pick a path that cannot
+ 		 * work. Anything unrecognised is refused. */
+ 		case MTLGPUFamilyCommon1:
+ 		case MTLGPUFamilyCommon2:
+ 		case MTLGPUFamilyCommon3:
+ 			return YES;
+ 		default:
+			return NO;
+ 	}
+ }
 
 @end
