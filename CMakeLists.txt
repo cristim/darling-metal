@@ -97,6 +97,7 @@ add_framework(Metal
 		src/Metal/MTLBuffer.mm
 		src/Metal/MTLCaptureManager.mm
 		src/Metal/MTLCommandBuffer.mm
+		src/Metal/MTLCommandBufferDescriptor.mm
 		src/Metal/MTLCommandQueue.mm
 		src/Metal/MTLCompileOptions.mm
 		src/Metal/MTLComputeCommandEncoder.mm
