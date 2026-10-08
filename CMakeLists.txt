@@ -18,7 +18,7 @@ if (BUILD_METAL)
 	# and a corpus runner that fork/exec spirv-val, neither of which belongs in a
 	# guest address space with no host exec path, and mslc is a repository other
 	# people work on, so a target appearing there must not become a reason this
-	# one stops building. The six sources below are the whole library; main.cpp is
+	# one stops building. The seven sources below are the whole library; main.cpp is
 	# the driver.
 	#
 	# The public surface is a C ABI declared in deps/mslc/include/mslc/mslc.h, which
@@ -27,6 +27,7 @@ if (BUILD_METAL)
 	set(DYLIB_INSTALL_NAME "/usr/lib/darling/libmslc.dylib")
 	add_darling_library(mslc
 		deps/mslc/src/lexer.cpp
+		deps/mslc/src/preprocessor.cpp
 		deps/mslc/src/ast.cpp
 		deps/mslc/src/parser.cpp
 		deps/mslc/src/sema.cpp
