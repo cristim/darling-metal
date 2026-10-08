@@ -205,6 +205,13 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	return _device->recommendedMaxWorkingSetSize();
 }
 
+- (NSUInteger)maxBufferLength
+{
+	// A hard limit, unlike recommendedMaxWorkingSetSize. See
+	// Indium::PrivateDevice::maxBufferLength for how it is bounded.
+	return _device->maxBufferLength();
+}
+
 - (NSString*)name
 {
 	// VkPhysicalDeviceProperties::deviceName, which the Vulkan specification
