@@ -212,6 +212,16 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	return _device->maxBufferLength();
 }
 
+- (BOOL)hasUnifiedMemory
+{
+	return _device->hasUnifiedMemory();
+}
+
+- (uint64_t)registryID
+{
+	return _device->registryID();
+}
+
 - (NSString*)name
 {
 	// VkPhysicalDeviceProperties::deviceName, which the Vulkan specification
