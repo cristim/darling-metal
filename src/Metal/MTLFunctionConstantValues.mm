@@ -57,12 +57,6 @@ static NSDictionary* MTLFunctionConstantEntry(const void* value, MTLDataType typ
 	return @{ @"type": @(type), @"data": [NSData dataWithBytes: value length: size] };
 }
 
-@interface MTLFunctionConstantValues () {
-	NSMutableDictionary* _byIndex;
-	NSMutableDictionary* _byName;
-}
-@end
-
 @implementation MTLFunctionConstantValues
 
 - (id)init
@@ -93,7 +87,7 @@ static NSDictionary* MTLFunctionConstantEntry(const void* value, MTLDataType typ
 	if (name == nil) {
 		MTLFunctionConstantFail(@"-[MTLFunctionConstantValues setConstantValue:type:withName:]: name must not be nil");
 	}
-	_byName[[[name copy] autorelease]] = MTLFunctionConstantEntry(value, type, size);
+	_byName[name] = MTLFunctionConstantEntry(value, type, size);
 }
 
 - (void)setConstantValues: (const void*)values type: (MTLDataType)type withRange: (NSRange)range
@@ -115,7 +109,7 @@ static NSDictionary* MTLFunctionConstantEntry(const void* value, MTLDataType typ
 
 - (id)copyWithZone: (NSZone*)zone
 {
-	MTLFunctionConstantValues* copy = [[MTLFunctionConstantValues allocWithZone: zone] init];
+	MTLFunctionConstantValues* copy = [[[self class] allocWithZone: zone] init];
 
 	[copy->_byIndex addEntriesFromDictionary: _byIndex];
 	[copy->_byName addEntriesFromDictionary: _byName];

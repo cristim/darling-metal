@@ -12,7 +12,7 @@ env DARLING_ENABLE_METAL=1 DPREFIX="$PREFIX" DARLING_INSTALL_PREFIX="$RUNTIME/im
 ```
 
 `-DNEGATIVE` inverts every expectation; that run must fail. Against a Metal built from a tree
-without this class (the `MTL_UNSUPPORTED_CLASS` stub) the first call aborts.
+without this class (the `MTL_UNSUPPORTED_CLASS` stub) the first set call aborts.
 
 Left out: `-newFunctionWithName:constantValues:error:` does not exist on `MTLLibrary` and is not added
 here. It needs mslc support for `[[function_constant]]`; until then declaring it would mean

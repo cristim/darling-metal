@@ -42,6 +42,8 @@ int main(void) {
  @autoreleasepool {
   MTLFunctionConstantValues *v = [[MTLFunctionConstantValues alloc] init];
   EXPECT(v != nil, "init");
+  EXPECT(class_getInstanceVariable([MTLFunctionConstantValues class], "_byIndex") && class_getInstanceVariable([MTLFunctionConstantValues class], "_byName"), "ivars _byIndex/_byName exist (test reads them; update if storage changes)");
+  EXPECT([v conformsToProtocol:@protocol(NSCopying)] && [v respondsToSelector:@selector(setConstantValue:type:atIndex:)] && [v respondsToSelector:@selector(setConstantValue:type:withName:)] && [v respondsToSelector:@selector(setConstantValues:type:withRange:)] && [v respondsToSelector:@selector(reset)], "public selectors and NSCopying present");
 
   int i = 7;
   [v setConstantValue:&i type:MTLDataTypeInt atIndex:3];
@@ -75,11 +77,27 @@ int main(void) {
   [v setConstantValues:f2 type:MTLDataTypeFloat2 withRange:NSMakeRange(40, 2)];
   EXPECT(entryIs(table(v, "_byIndex"), @41, MTLDataTypeFloat2, &f2[2], 8), "range of vectors strides by vector size");
 
+  int n1 = 1, n2 = 2;
+  NSMutableString *mname = [NSMutableString stringWithString:@"k"];
+  [v setConstantValue:&n1 type:MTLDataTypeInt withName:mname];
+  [mname appendString:@"2"];
+  [v setConstantValue:&n2 type:MTLDataTypeInt withName:@"k"];
+  EXPECT(entryIs(table(v, "_byName"), @"k", MTLDataTypeInt, &n2, 4) && table(v, "_byName")[@"k2"] == nil, "overwrite by name; later mutation of the name string not seen");
+  unsigned short h[2] = {0x3c00, 0x4000};
+  [v setConstantValue:h type:MTLDataTypeHalf2 withName:@"h2"];
+  [v setConstantValue:h type:MTLDataTypeBFloat atIndex:60];
+  [v setConstantValue:h type:MTLDataTypeBool4 atIndex:61];
+  EXPECT([table(v, "_byName")[@"h2"][@"data"] length] == 4 && [table(v, "_byIndex")[@60][@"data"] length] == 2 && [table(v, "_byIndex")[@61][@"data"] length] == 4, "half2/bfloat/bool4 sizes 4/2/4");
+  float f3r[8] = {1, 2, 3, 0, 5, 6, 7, 0};
+  [v setConstantValues:f3r type:MTLDataTypeFloat3 withRange:NSMakeRange(70, 2)];
+  EXPECT(entryIs(table(v, "_byIndex"), @71, MTLDataTypeFloat3, &f3r[4], 16), "float3 range strides by 16 bytes (assumed size)");
+
   MTLFunctionConstantValues *copy = [v copy];
+  EXPECT(copy != v && [copy class] == [v class], "copy is a distinct object of the same class");
   EXPECT(table(copy, "_byIndex") != table(v, "_byIndex") && [table(copy, "_byIndex") isEqual:table(v, "_byIndex")] && [table(copy, "_byName") isEqual:table(v, "_byName")], "copy has equal, distinct tables");
   [v reset];
   EXPECT([table(v, "_byIndex") count] == 0 && [table(v, "_byName") count] == 0, "reset clears index and name tables");
-  EXPECT([table(copy, "_byIndex") count] == 10 && [table(copy, "_byName") count] == 1, "reset of original leaves the copy intact");
+  EXPECT([table(copy, "_byIndex") count] == 14 && [table(copy, "_byName") count] == 3, "reset of original leaves the copy intact");
   int one = 1;
   [copy setConstantValue:&one type:MTLDataTypeInt atIndex:0];
   EXPECT(table(v, "_byIndex")[@0] == nil, "writing to the copy does not reach the original");
