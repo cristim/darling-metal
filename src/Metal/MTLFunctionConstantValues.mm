@@ -87,7 +87,9 @@ static NSDictionary* MTLFunctionConstantEntry(const void* value, MTLDataType typ
 	if (name == nil) {
 		MTLFunctionConstantFail(@"-[MTLFunctionConstantValues setConstantValue:type:withName:]: name must not be nil");
 	}
-	_byName[name] = MTLFunctionConstantEntry(value, type, size);
+	NSString* key = [name copy];
+	_byName[key] = MTLFunctionConstantEntry(value, type, size);
+	[key release];
 }
 
 - (void)setConstantValues: (const void*)values type: (MTLDataType)type withRange: (NSRange)range
