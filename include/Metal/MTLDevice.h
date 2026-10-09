@@ -95,6 +95,24 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  framework having to guess an encoding. */
 @property(nonnull, readonly) NSString* name;
 
+/*!
+ @property hasUnifiedMemory
+ @abstract Whether the GPU shares all of its memory with the CPU.
+ @discussion Answered from the device's Vulkan memory types: YES when every
+ device-local type is also host-visible, which is true of Honeykrisp on Apple
+ Silicon and false of a discrete GPU. Callers that treat YES plus an "Apple"
+ device name as a tile-based GPU (Blender does) take their framebuffer-fetch
+ path, which the shader translator does not yet support. */
+@property(readonly) BOOL hasUnifiedMemory;
+
+/*!
+ @property registryID
+ @abstract A 64-bit identifier that is stable for the device and distinct
+ between devices.
+ @discussion Derived from VkPhysicalDeviceIDProperties::deviceUUID. It is not
+ an IORegistry entry ID, which Vulkan has no property for. */
+@property(readonly) uint64_t registryID;
+
 /*! The selectors below are deliberately NOT declared, so a caller that reaches
  for one gets an unrecognised selector naming the gap. Each is a question about
  the hardware that indium cannot answer, and a plausible answer would be worse
