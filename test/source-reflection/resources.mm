@@ -44,9 +44,11 @@ int main() {
  match=ok && vertexResult.functions.at("v").bindings.size()==2;
  if(match) { const auto& b=vertexResult.functions.at("v").bindings[1]; match=b.type==Indium::BindingType::VertexInput && b.index==2 && vertexResult.functions.at("v").bindings[0].type==Indium::BindingType::Buffer; }
  printf("vertexinput %s%s%s\n",match?"PASS":"FAIL",error?": ":"",error?[error UTF8String]:""); failures+=!match;
- const char* vfrom[]={"\"stage\":\"vertex\"", "\"metal_index\":2,", "\"metal_index\":2", "\"location\":2", "\"location\":2"};
- const char* vto[]={"\"stage\":\"fragment\"", "", "\"metal_index\":2.5", "\"location\":3", "\"location\":2,\"descriptor\":{\"set\":0,\"binding\":1}"};
- for(int i=0;i<5;i++) {
+ // Each case breaks one field and keeps the others consistent with the defaulted index/location 0,
+ // so removing that field's check (or read) makes the case accept.
+ const char* vfrom[]={"\"stage\":\"vertex\"", "\"metal_index\":2,\"location\":2", "\"metal_index\":2,\"location\":2", "\"location\":2", "\"location\":2", "\"metal_index\":2,\"location\":2,"};
+ const char* vto[]={"\"stage\":\"fragment\"", "\"location\":0", "\"metal_index\":2.5,\"location\":0", "\"location\":3", "\"location\":2,\"descriptor\":{\"set\":0,\"binding\":1}", "\"metal_index\":0,"};
+ for(int i=0;i<6;i++) {
   NSString* invalid=[vertex stringByReplacingOccurrencesOfString:[NSString stringWithUTF8String:vfrom[i]] withString:[NSString stringWithUTF8String:vto[i]]];
   Indium::LibraryReflection rejected; error=nil;
   bool rejects=!MTLReadMSLReflection([invalid UTF8String],strlen([invalid UTF8String]),rejected,error) && error!=nil;
