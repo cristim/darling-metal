@@ -171,9 +171,26 @@ static bool MTLReadBindings(NSArray* bindings, Indium::FunctionReflection& outFu
 		if ([kind isEqualToString: @"Buffer"]) binding.type = Indium::BindingType::Buffer;
 		else if ([kind isEqualToString: @"Texture"]) binding.type = Indium::BindingType::Texture;
 		else if ([kind isEqualToString: @"Sampler"]) binding.type = Indium::BindingType::Sampler;
+		else if ([kind isEqualToString: @"VertexInput"]) binding.type = Indium::BindingType::VertexInput;
 		else {
 			outError = MTLReflectionError(@"unsupported reflection binding kind '%@'", kind);
 			return false;
+		}
+
+		// A vertex attribute has no descriptor; the pipeline's vertex descriptor
+		// feeds the location, as for an AIR stage_in attribute.
+		if (binding.type == Indium::BindingType::VertexInput) {
+			size_t location = 0;
+			if (outFunction.functionType != Indium::FunctionType::Vertex ||
+				!MTLReadIndex([object objectForKey: @"metal_index"], binding.index) ||
+				!MTLReadIndex([object objectForKey: @"location"], location) || location != binding.index ||
+				[object objectForKey: @"descriptor"] != nil)
+			{
+				outError = MTLReflectionError(@"invalid vertex input binding");
+				return false;
+			}
+			outFunction.bindings.push_back(binding);
+			continue;
 		}
 
 		id embedded = [object objectForKey: @"embedded_sampler"];

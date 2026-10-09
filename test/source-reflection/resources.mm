@@ -37,5 +37,20 @@ int main() {
   bool rejects=!MTLReadMSLReflection([invalid UTF8String],strlen([invalid UTF8String]),rejected,error) && error!=nil;
   printf("invalid%d %s\n",i,rejects?"PASS":"FAIL"); failures+=!rejects;
  }
+ // mslc 84a8a94 emits this for a [[stage_in]] field with [[attribute(n)]].
+ NSString* vertex=@"{\"reflection_version\":2,\"entry_points\":[{\"name\":\"v\",\"stage\":\"vertex\",\"bindings\":[{\"kind\":\"Buffer\",\"metal_index\":1,\"descriptor\":{\"set\":0,\"binding\":0}},{\"kind\":\"VertexInput\",\"metal_index\":2,\"location\":2,\"name\":\"uv\"}],\"embedded_samplers\":[]}]}";
+ Indium::LibraryReflection vertexResult; error=nil;
+ ok=MTLReadMSLReflection([vertex UTF8String],strlen([vertex UTF8String]),vertexResult,error);
+ match=ok && vertexResult.functions.at("v").bindings.size()==2;
+ if(match) { const auto& b=vertexResult.functions.at("v").bindings[1]; match=b.type==Indium::BindingType::VertexInput && b.index==2 && vertexResult.functions.at("v").bindings[0].type==Indium::BindingType::Buffer; }
+ printf("vertexinput %s%s%s\n",match?"PASS":"FAIL",error?": ":"",error?[error UTF8String]:""); failures+=!match;
+ const char* vfrom[]={"\"stage\":\"vertex\"", "\"metal_index\":2,", "\"metal_index\":2", "\"location\":2", "\"location\":2"};
+ const char* vto[]={"\"stage\":\"fragment\"", "", "\"metal_index\":2.5", "\"location\":3", "\"location\":2,\"descriptor\":{\"set\":0,\"binding\":1}"};
+ for(int i=0;i<5;i++) {
+  NSString* invalid=[vertex stringByReplacingOccurrencesOfString:[NSString stringWithUTF8String:vfrom[i]] withString:[NSString stringWithUTF8String:vto[i]]];
+  Indium::LibraryReflection rejected; error=nil;
+  bool rejects=!MTLReadMSLReflection([invalid UTF8String],strlen([invalid UTF8String]),rejected,error) && error!=nil;
+  printf("vertexinvalid%d %s\n",i,rejects?"PASS":"FAIL"); failures+=!rejects;
+ }
  [pool drain]; return failures?1:0;
 }
