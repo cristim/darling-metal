@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // The two selectors are declared here so the client compiles against a Metal that
 // lacks them and fails at run time with the unrecognised selector, not at build time.
@@ -28,7 +29,12 @@ int main(void) {
   uint64_t registryID = d.registryID;
   printf("name '%s' hasUnifiedMemory %d registryID 0x%016llx\n", [device.name UTF8String], (int)unified, (unsigned long long)registryID);
 
-  failed += check(unified == YES || unified == NO, "hasUnifiedMemory is a BOOL");
+  // Independent expectation: every memory type on Honeykrisp and llvmpipe is host-visible
+  // (vulkaninfo), so the default device must answer YES there. Required, so a constant NO fails.
+  const char *expect = getenv("EXPECT_UNIFIED");
+  if (!expect) { puts("FAIL EXPECT_UNIFIED (0 or 1) not set"); return 2; }
+  failed += check(d.hasUnifiedMemory == (atoi(expect) != 0), "hasUnifiedMemory matches EXPECT_UNIFIED");
+  failed += check(d.hasUnifiedMemory == unified, "hasUnifiedMemory is stable across calls");
   failed += check(registryID != 0, "registryID is non-zero");
   failed += check(d.registryID == registryID, "registryID is stable across calls");
 

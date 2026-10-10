@@ -100,9 +100,9 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  @abstract Whether the GPU shares all of its memory with the CPU.
  @discussion Answered from the device's Vulkan memory types: YES when every
  device-local type is also host-visible, which is true of Honeykrisp on Apple
- Silicon and false of a discrete GPU. Callers that treat YES plus an "Apple"
- device name as a tile-based GPU (Blender does) take their framebuffer-fetch
- path, which the shader translator does not yet support. */
+ Silicon and false of a discrete GPU. Blender treats YES plus an "Apple" device name as
+ a tile-based GPU, which removes its compute and blit barriers and makes it rely
+ on inter-encoder hazard tracking, and gives CPU-visible buffers Shared storage. */
 @property(readonly) BOOL hasUnifiedMemory;
 
 /*!
