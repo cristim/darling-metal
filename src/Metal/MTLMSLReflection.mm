@@ -193,7 +193,8 @@ static bool MTLReadBindings(NSArray* bindings, Indium::FunctionReflection& outFu
 		}
 		if (binding.type == Indium::BindingType::Texture &&
 			!MTLReadEnum(object, @"texture_access", binding.textureAccessType, {
-				{@"Sample", Indium::TextureAccessType::Sample}, {@"Write", Indium::TextureAccessType::Write}}))
+				{@"Sample", Indium::TextureAccessType::Sample}, {@"Read", Indium::TextureAccessType::Read},
+				{@"Write", Indium::TextureAccessType::Write}}))
 		{
 			outError = MTLReflectionError(@"texture binding has missing or unsupported texture_access");
 			return false;
