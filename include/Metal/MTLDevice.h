@@ -120,8 +120,9 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  @discussion Apple documents this as a device property (macOS 13.3 and later)
  that a client sets to YES to allow the device to use more threads for
  concurrent shader compilation. It is only a hint, and Darling ignores it, for
- any value: Indium compiles and links pipelines on its own threads, and Vulkan
- has no knob for the compiler's thread count. Only the setter exists; nothing
+ any value: Vulkan has no knob for the compiler's thread count, and Indium
+ creates pipelines synchronously on the calling thread, so there is no pool to
+ widen. Only the setter exists; nothing
  records the value, so the property's getter, shouldMaximizeConcurrentCompilation,
  is not declared. Blender's Metal backend sets it to YES at startup. */
 - (void)setShouldMaximizeConcurrentCompilation: (BOOL)shouldMaximize;
