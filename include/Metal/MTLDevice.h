@@ -113,6 +113,19 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  an IORegistry entry ID, which Vulkan has no property for. */
 @property(readonly) uint64_t registryID;
 
+/*!
+ @method setShouldMaximizeConcurrentCompilation:
+ @abstract A hint that the device may use more threads to compile shaders and
+ pipelines concurrently.
+ @discussion Apple documents this as a device property (macOS 13.3 and later)
+ that a client sets to YES to allow the device to use more threads for
+ concurrent shader compilation. It is only a hint, and Darling ignores it, for
+ any value: Indium compiles and links pipelines on its own threads, and Vulkan
+ has no knob for the compiler's thread count. Only the setter exists; nothing
+ records the value, so the property's getter, shouldMaximizeConcurrentCompilation,
+ is not declared. Blender's Metal backend sets it to YES at startup. */
+- (void)setShouldMaximizeConcurrentCompilation: (BOOL)shouldMaximize;
+
 /*! The selectors below are deliberately NOT declared, so a caller that reaches
  for one gets an unrecognised selector naming the gap. Each is a question about
  the hardware that indium cannot answer, and a plausible answer would be worse
