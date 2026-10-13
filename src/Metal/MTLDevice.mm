@@ -222,6 +222,11 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	return _device->registryID();
 }
 
+- (void)setShouldMaximizeConcurrentCompilation: (BOOL)shouldMaximize
+{
+	// A hint, documented as such. Accepted for any value and ignored; see MTLDevice.h.
+}
+
 - (NSString*)name
 {
 	// VkPhysicalDeviceProperties::deviceName, which the Vulkan specification

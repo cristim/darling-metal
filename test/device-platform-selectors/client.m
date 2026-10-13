@@ -8,6 +8,7 @@
 @protocol PlatformSelectors
 @property(readonly) BOOL hasUnifiedMemory;
 @property(readonly) uint64_t registryID;
+- (void)setShouldMaximizeConcurrentCompilation:(BOOL)shouldMaximize;
 @end
 
 static int check(int ok, const char *what) {
@@ -22,6 +23,7 @@ int main(void) {
   int failed = 0;
   failed += check([device respondsToSelector:@selector(hasUnifiedMemory)], "responds to hasUnifiedMemory");
   failed += check([device respondsToSelector:@selector(registryID)], "responds to registryID");
+  failed += check([device respondsToSelector:@selector(setShouldMaximizeConcurrentCompilation:)], "responds to setShouldMaximizeConcurrentCompilation:");
   if (failed) { puts("FAIL"); return 1; }
 
   id<MTLDevice, PlatformSelectors> d = (id<MTLDevice, PlatformSelectors>)device;
@@ -45,6 +47,15 @@ int main(void) {
   for (NSUInteger i = 0; i < all.count; i++)
     for (NSUInteger j = i + 1; j < all.count; j++)
       failed += check(((id<MTLDevice, PlatformSelectors>)all[i]).registryID != ((id<MTLDevice, PlatformSelectors>)all[j]).registryID, "registryID differs between devices");
+
+  // A hint Darling ignores: both values must be accepted without raising.
+  @try {
+    [d setShouldMaximizeConcurrentCompilation:YES];
+    [d setShouldMaximizeConcurrentCompilation:NO];
+    failed += check(1, "setShouldMaximizeConcurrentCompilation: YES and NO do not raise");
+  } @catch (NSException *e) {
+    failed += check(0, "setShouldMaximizeConcurrentCompilation: YES and NO do not raise");
+  }
 
   puts(failed ? "FAIL" : "PASS");
   return failed != 0;
